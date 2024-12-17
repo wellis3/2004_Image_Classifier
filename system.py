@@ -4,7 +4,6 @@ from utils import *
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 from scipy.stats import mode
-from scipy.linalg import eigh
 
 
 def image_to_reduced_feature(images, split='train'):
@@ -28,7 +27,7 @@ def image_to_reduced_feature(images, split='train'):
     # Project the data onto the top components
     principal_components = np.dot(standardized_images, eigenvectors[:, :num_components])
 
-    return principal_components
+    return standardized_images
 
 
 def training_model(train_features, train_labels):
@@ -50,16 +49,34 @@ class KNeighboursClassifier(BaseEstimator, ClassifierMixin):
         return self
 
     def predict(self, test_data):
-        # Super compact implementation of nearest neighbour
+        # Compute cosine similarity as before
         x = np.dot(test_data, self.train_data.T)
         modtest = np.sqrt(np.sum(test_data * test_data, axis=1))
         modtrain = np.sqrt(np.sum(self.train_data * self.train_data, axis=1))
         dist = x / np.outer(modtest, modtrain)  # Cosine similarity matrix
 
-        nearest_indices = np.argsort(dist, axis=1)[:, -self.n_neighbours:]
+        # Since we're using cosine similarity, convert it to a distance measure (1 - similarity)
+        distances = 1 - dist
 
+        # Find indices of the nearest neighbors
+        nearest_indices = np.argsort(distances, axis=1)[:, :self.n_neighbours]
+
+        # Retrieve the nearest labels
         nearest_labels = self.train_labels[nearest_indices]
+        nearest_distances = np.take_along_axis(distances, nearest_indices, axis=1)
 
-        predictions = mode(nearest_labels, axis=1).mode.flatten()
+        # Compute weights as inverse of distances (adding a small epsilon to avoid division by zero)
+        weights = 1 / (nearest_distances + 1e-8)
+
+        # Perform weighted voting
+        weighted_votes = np.zeros((test_data.shape[0], np.max(self.train_labels) + 1))  # Assuming labels start from 0
+        for i in range(self.n_neighbours):
+            for j in range(test_data.shape[0]):
+                label = nearest_labels[j, i]
+                weighted_votes[j, label] += weights[j, i]
+
+        # Predict the label with the highest weighted vote
+        predictions = np.argmax(weighted_votes, axis=1)
 
         return predictions
+
