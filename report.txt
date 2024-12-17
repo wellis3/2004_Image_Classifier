@@ -1,0 +1,14 @@
+# MNIST assignment report
+## Feature Extraction (Max 300 Words)
+
+
+## Classifier Design (Max 300 Words)
+
+
+## Performance
+
+## Analysis of Results [Max 400 Words]
+
+
+## Other information (Optional, Max 100 words)
+

@@ -1,18 +1,8 @@
-import scipy.linalg
-
-from utils import *
 import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib.cm as cm
 from sklearn.base import BaseEstimator, ClassifierMixin
-from scipy.stats import mode
-
 
 def image_to_reduced_feature(images, split='train'):
-
-    mean_images = np.mean(images, axis=0)
-    std_images = np.std(images, axis=0) + 1e-8
-    standardized_images = (images - mean_images) / std_images
 
     principle_components = 70
 
@@ -34,8 +24,6 @@ def image_to_reduced_feature(images, split='train'):
     # Create a figure for displaying the images
     plt.figure(figsize=(10, 10))
 
-    # Loop through the images and reconstruct each one
-        # Loop through all images
     reconstructed = (
         np.dot(
             np.dot(images - mean_train, v[:, 0: N - 1]),
