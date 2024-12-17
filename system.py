@@ -1,7 +1,9 @@
-import scipy
+import scipy.linalg
 
 from utils import *
+import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.cm as cm
 from sklearn.base import BaseEstimator, ClassifierMixin
 from scipy.stats import mode
 
@@ -12,27 +14,45 @@ def image_to_reduced_feature(images, split='train'):
     std_images = np.std(images, axis=0) + 1e-8
     standardized_images = (images - mean_images) / std_images
 
-    # Compute covariance matrix
-    cov_matrix = np.cov(standardized_images, rowvar=False)
+    principle_components = 70
 
-    # Perform eigen decomposition
-    eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
+    print(images.shape)
+    covx = np.cov(images, rowvar=0)
+    print(covx.shape)
+    N = covx.shape[0]
+    w, v = np.linalg.eigh(covx)
+    w = w[-principle_components:]  # Last 40 eigenvalues
+    v = v[:, -principle_components:]  # Corresponding eigenvectors
+    print(w)
+    print(v.shape)
+    v = np.fliplr(v)
+    v.shape
 
-    # Sort eigenvalues and eigenvectors in descending order
-    sorted_indices = np.argsort(eigenvalues)[::-1]
-    eigenvectors = eigenvectors[:, sorted_indices]
+    N = 40
+    mean_train = np.mean(images, axis=0)
 
-    num_components = 100
+    # Create a figure for displaying the images
+    plt.figure(figsize=(10, 10))
 
-    # Project the data onto the top components
-    principal_components = np.dot(standardized_images, eigenvectors[:, :num_components])
+    # Loop through the images and reconstruct each one
+        # Loop through all images
+    reconstructed = (
+        np.dot(
+            np.dot(images - mean_train, v[:, 0: N - 1]),
+            v[:, 0: N - 1].transpose(),
+        )
+        + mean_train
+    )
 
-    return standardized_images
+    return reconstructed
 
 
 def training_model(train_features, train_labels):
     model = KNeighboursClassifier()
     model.fit(train_features, train_labels)
+
+    print(train_labels[0])
+
 
     return model
 
