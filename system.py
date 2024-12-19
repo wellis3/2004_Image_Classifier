@@ -6,19 +6,15 @@ def image_to_reduced_feature(images, split='train'):
 
     principle_components = 70
 
-    print(images.shape)
     covx = np.cov(images, rowvar=0)
-    print(covx.shape)
     N = covx.shape[0]
     w, v = np.linalg.eigh(covx)
-    w = w[-principle_components:]  # Last 40 eigenvalues
-    v = v[:, -principle_components:]  # Corresponding eigenvectors
-    print(w)
-    print(v.shape)
+    w = w[-principle_components:]
+    v = v[:, -principle_components:]
     v = np.fliplr(v)
     v.shape
 
-    N = 40
+    N = 70
     mean_train = np.mean(images, axis=0)
 
     # Create a figure for displaying the images
@@ -38,12 +34,7 @@ def image_to_reduced_feature(images, split='train'):
 def training_model(train_features, train_labels):
     model = KNeighboursClassifier()
     model.fit(train_features, train_labels)
-
-    print(train_labels[0])
-
-
     return model
-
 
 class KNeighboursClassifier(BaseEstimator, ClassifierMixin):
     def __init__(self, n_neighbours=6):
