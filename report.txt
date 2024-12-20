@@ -1,14 +1,59 @@
-# MNIST assignment report
+# MNIST Image Classifier Assignment Report
+
 ## Feature Extraction (Max 300 Words)
+
+I have used Principal Component Analysis (PCA) to extract key features from the dataset, as it helps reduce the dimensionality of the data while keeping the most important information. The process starts by calculating the covariance matrix of the images, which shows the relationships between pixel intensities. From there, I compute the eigenvalues and eigenvectors of the covariance matrix. These are sorted in descending order of variance, ensuring the most significant features come first. I then truncate the eigenvectors to keep only the top N principal components.
+Next, I calculate the mean image of the dataset and subtract it from each image. This centers the data, making sure the mean is zero, which is an essential step for PCA. The centered images are then projected onto the top N principal components, reducing their dimensionality while retaining the key variations in the data.
+To assess the quality of the reduced features, I reconstruct the images by multiplying the reduced data with the transpose of the principal component matrix. The mean image is then added back to restore the original scale. The number of principal components used directly affects the quality of the reconstructed images—the more components retained, the closer the reconstructed images are to the original ones.
+This method works well for extracting meaningful features from the dataset while reducing noise and lowering the computational requirements for further processing
+
 
 
 ## Classifier Design (Max 300 Words)
 
+I have opted to use the K nearest neighbors classifier for this application for a few reasons:
+It has no training phase: allowing the program to run quickly and effectively within the time constraints.
+Simplicity: It is an easy classifier to understand, helping with setting the code out and debugging. The step by step nature of KNN allows me to easily discover where bugs are stemming from within the code.
+Effectiveness: KNN excels at distinguishing between distinct patterns, making it well-suited for the MNIST dataset, which contains only 10 digit classes
+There isn't much to tune with KNN apart from the number of neighbors used
+
+To measure the similarity, I have opted to use the cosine similarity instead of alternatives like the manhattan or euclidean distances.
+The process for calculating cosine similarity is as follows:
+First, the dot product is computed by multiplying the test data with the transposed training data.
+Next, the magnitudes of both the test and training vectors are calculated.
+Finally, the dot product is divided by the outer product of these magnitudes, giving the similarity matrix.
+To convert the similarity matrix into distances, I subtract it from 1. The nearest k distances are then selected alongside their corresponding labels. To improve the accuracy of predictions, I apply distance-based weighting, where closer neighbors have a greater influence. This approach ensures more reliable classification results.
+
+
 
 ## Performance
 
+My percentage correctness scores (accuracy, to 1 decimal place) for the test data are as follows.
+
+Accuracy on Noisy test data: 95.0%
+
+Accuracy on Masked test data: 80.2%
+
+
 ## Analysis of Results [Max 400 Words]
 
+KNN Tuning:
+Within my KNN there is one key part to tune: the K number of nearest neighbors. I tuned this using a simple for loop running through a wide range of K’s that lead me to 4 as the highest scoring value. 
+I found that using a lower value would decrease the value as KNN becomes more sensitive to noise whereas too many can blur the accurate predictions.
+Weighted vs unweighted.
+With my solution I used weighted neighbours in order to increase accuracy. On average throughout all of my testing the use of weighted neighbours increase the results between 0.5% and 0.9%. Using weighted
 
-## Other information (Optional, Max 100 words)
+PCA Tuning
+The difficulty I found with tuning the PCA was the balance between accuracy and runtime, as the purpose of the PCA is to reduce the size of the images in order to allow the prediction algorithm (KNN) to run quicker.
+The way I tested this was by checking at which point does the increased number of principle components no longer correlate with the increased accuracy of the test. Below is a hand select amount of tests highlighting what I mean
+Priciple Components : Average accuracy (between noisy and masked)
+10 : 65.9
+40: 85.35
+80: 87.55
+200: 87.65
+500: 87.65
+780: 87.75
+As you can see with this data, the accuracy ramps up very quickly to around 80 principle components, before stagnating and only growing slightly. Between 80 and 780 (4 off max components, which would keep the image the same as the original) there is an accuracy increase of 0.2% despite the implied increase of time of 970%
+Another useful tool I used to help get the best results was implementing MatPlotLib in order to display the reconstructed image next to the original image to ensure key data was kept and in my perspective the number was still legible. This is the point I started at before fine tuning the principle components further, as it also helped during the development of the system to understand what was going on
+
 
